@@ -170,9 +170,9 @@ namespace :parallel do
     task_name = 'create'
     task_name += ":#{name}" if name
     desc "Create test#{" #{name}" if name} database via db:#{task_name} --> parallel:#{task_name}[num_cpus]"
-    task task_name.to_sym, :count do |_, args|
+    task task_name.to_sym, :count, :gemfile do |_, args|
       ParallelTests::Tasks.run_in_parallel(
-        [$0, "db:#{task_name}", "RAILS_ENV=#{ParallelTests::Tasks.rails_env}"],
+        [$0, "db:#{task_name}", "BUNDLE_GEMFILE=#{args[:gemfile]}", "RAILS_ENV=#{ParallelTests::Tasks.rails_env}"],
         args
       )
     end
@@ -248,11 +248,12 @@ namespace :parallel do
     task_name += ":#{name}" if name
 
     desc "Load dumped schema for test#{" #{name}" if name} database via #{rails_task} --> parallel:#{task_name}[num_cpus]"
-    task task_name.to_sym, :count do |_, args|
+    task task_name.to_sym, :count, :gemfile do |_, args|
       command = [
         $0,
         ParallelTests::Tasks.purge_before_load,
         rails_task,
+        "BUNDLE_GEMFILE=#{args[:gemfile]}",
         "RAILS_ENV=#{ParallelTests::Tasks.rails_env}",
         "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       ]
